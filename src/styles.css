@@ -1087,13 +1087,90 @@ code {
     color: var(--accent)
 }
 
+.menu-toggle {
+    display: none
+}
+
 @media(max-width:850px) {
     .container {
         width: min(var(--max), calc(100% - 30px))
     }
 
+    .nav-wrap {
+        top: 10px;
+        padding: 0 8px
+    }
+
+    .nav-wrap nav {
+        position: relative;
+        width: 100%;
+        padding: 10px 12px 10px 16px;
+        border-radius: 22px;
+        flex-wrap: wrap;
+        align-items: center
+    }
+
     .navlinks {
+        display: none;
+        order: 3;
+        width: 100%;
+        padding: 10px 0 2px;
+        border-top: 1px solid var(--line);
+        margin-top: 10px;
+        gap: 4px;
+        flex-direction: column
+    }
+
+    .menu-open .navlinks {
+        display: flex
+    }
+
+    .navlinks a {
+        padding: 12px 13px;
+        font-size: 12px;
+        border-radius: 12px
+    }
+
+    .navlinks a:after {
         display: none
+    }
+
+    .nav-right {
+        margin-left: auto
+    }
+
+    .menu-toggle {
+        display: grid;
+        width: 38px;
+        height: 38px;
+        padding: 9px;
+        border: 1px solid var(--line);
+        background: var(--panel2);
+        border-radius: 50%;
+        cursor: pointer;
+        place-items: center;
+        gap: 4px
+    }
+
+    .menu-toggle span {
+        display: block;
+        width: 15px;
+        height: 1px;
+        background: var(--text);
+        transition: .25s;
+        transform-origin: center
+    }
+
+    .menu-open .menu-toggle span:nth-child(1) {
+        transform: translateY(5px) rotate(45deg)
+    }
+
+    .menu-open .menu-toggle span:nth-child(2) {
+        opacity: 0
+    }
+
+    .menu-open .menu-toggle span:nth-child(3) {
+        transform: translateY(-5px) rotate(-45deg)
     }
 
     .hero {
@@ -1167,10 +1244,6 @@ code {
         flex-wrap: wrap
     }
 
-    .nav-wrap nav {
-        padding: 14px 15px
-    }
-
     .brand {
         font-size: 14px
     }
@@ -1181,8 +1254,101 @@ code {
 }
 
 @media(max-width:520px) {
+    .container {
+        width: calc(100% - 24px)
+    }
+
     h1 {
-        font-size: 60px
+        font-size: clamp(50px, 15vw, 60px)
+    }
+
+    h2 {
+        font-size: clamp(40px, 12vw, 58px)
+    }
+
+    section {
+        padding: 88px 0
+    }
+
+    .page-hero {
+        padding-top: 150px;
+        padding-bottom: 60px;
+        min-height: 68vh
+    }
+
+    .nav-wrap nav {
+        padding-left: 13px;
+        padding-right: 9px
+    }
+
+    .brand {
+        font-size: 13px
+    }
+
+    .theme-toggle {
+        width: 34px;
+        height: 34px;
+        font-size: 15px
+    }
+
+    .menu-toggle {
+        width: 34px;
+        height: 34px
+    }
+
+    .nav-cta {
+        display: none
+    }
+
+    .hero {
+        padding-top: 135px;
+        min-height: 100svh
+    }
+
+    .hero-copy {
+        font-size: 14px
+    }
+
+    .hero-actions {
+        flex-wrap: wrap
+    }
+
+    .hero-actions .button {
+        flex: 1 1 auto;
+        text-align: center
+    }
+
+    .project-row {
+        grid-template-columns: 55px 1fr 25px
+    }
+
+    .project-row h3 {
+        font-size: 24px
+    }
+
+    .life-card {
+        min-height: 390px;
+        padding: 22px
+    }
+
+    .life-card>h3 {
+        font-size: 42px;
+        left: 22px
+    }
+
+    .life-card>p {
+        right: 22px;
+        top: 22px;
+        max-width: 160px
+    }
+
+    .life-meta {
+        left: 22px;
+        bottom: 20px
+    }
+
+    .life-art {
+        inset: 20% 10% 24%
     }
 
     .metrics {
@@ -1195,35 +1361,30 @@ code {
 
     .now-grid>div {
         border-right: 0;
-        border-bottom: 1px solid var(--line)
+        border-bottom: 1px solid var(--line);
+        padding: 22px
     }
 
     .now-grid>div:last-child {
         border-bottom: 0
     }
 
-    .nav-cta {
-        display: none
+    .footer-top {
+        padding-bottom: 40px
     }
 
-    .hero-actions {
-        flex-wrap: wrap
+    .footer-links {
+        gap: 12px
     }
 
-    .project-row {
-        grid-template-columns: 55px 1fr 25px
+    .copyright {
+        display: block;
+        line-height: 1.8
     }
 
-    .project-row h3 {
-        font-size: 24px
-    }
-
-    .life-card {
-        min-height: 390px
-    }
-
-    .life-card>h3 {
-        font-size: 42px
+    .copyright .mono {
+        display: block;
+        margin-top: 7px
     }
 }
 
