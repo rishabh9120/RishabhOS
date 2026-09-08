@@ -2,13 +2,7 @@
 
 Personal digital world built with Vite, React and Three.js.
 
-## Routes
-- `/` — home / living tree
-- `/work` — professional experience
-- `/lab` — experiment archive
-- `/life` — travel, photography and interests
-- `/now` — current snapshot
-- `/private` — future private-app shell; protect this path with Cloudflare Access before adding sensitive data
+This version keeps the existing RishabhOS routes and navigation while replacing the background with a more organic recursive cherry-blossom tree: hierarchical branches, terminal twigs, blossom clusters, falling petals, route-focused camera motion and world-space pointer interaction.
 
 ## Local
 ```bash
@@ -19,7 +13,6 @@ npm run preview
 ```
 
 ## Cloudflare
-Build command: `npm run build`
-Output directory: `dist`
+Build command: `npm run build` Output directory: `dist`
 
-For the private area, configure Cloudflare Zero Trust Access for `your-domain.com/private/*` before putting any sensitive data behind it.
+Keep `/private/*` behind Cloudflare Access before adding sensitive data.
