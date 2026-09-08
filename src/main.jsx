@@ -19,102 +19,108 @@ function Background3D({ theme, pathname }) {
   useEffect(() => {
     const canvas = ref.current; if (!canvas) return;
     const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'high-performance' });
-    renderer.setPixelRatio(Math.min(devicePixelRatio, 1.8)); renderer.setSize(innerWidth, innerHeight); renderer.setClearColor(0, 0);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.8));
+    renderer.setSize(window.innerWidth, window.innerHeight); renderer.setClearColor(0, 0);
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(34, innerWidth / innerHeight, .1, 120); camera.position.set(0, 0, 12);
-    const world = new THREE.Group(); scene.add(world); const tree = new THREE.Group(); world.add(tree);
+    const camera = new THREE.PerspectiveCamera(34, window.innerWidth / window.innerHeight, .1, 120); camera.position.set(0, 0, 12);
+    const world = new THREE.Group(); scene.add(world);
+    const tree = new THREE.Group(); world.add(tree); tree.position.set(2.45, -.65, 0);
 
-    const trunkPts = []; for (let i = 0; i < 120; i++) { const t = i / 119; trunkPts.push(new THREE.Vector3(Math.sin(t * 5) * .34 + (t - .5) * .25, (t - .5) * 8.8, Math.cos(t * 2.8) * .22)); }
+    const trunkPts = [];
+    for (let i = 0; i < 110; i++) { const t = i / 109; trunkPts.push(new THREE.Vector3(Math.sin(t * 4.8) * .30 + Math.sin(t * 10) * .06 + (t - .5) * .30, (t - .5) * 8.8, Math.cos(t * 2.7) * .18)); }
     const trunkCurve = new THREE.CatmullRomCurve3(trunkPts, false, 'catmullrom', .5);
-    const trunk = new THREE.Mesh(new THREE.TubeGeometry(trunkCurve, 220, .095, 8, false), new THREE.MeshBasicMaterial({ color: 0x5b3540, transparent: true, opacity: .78 })); tree.add(trunk);
+    const trunk = new THREE.Mesh(new THREE.TubeGeometry(trunkCurve, 220, .15, 9, false), new THREE.MeshBasicMaterial({ color: 0x51303a, transparent: true, opacity: .9 })); tree.add(trunk);
 
-    const branches = [], branchCurves = []; const branchCount = 24;
-    for (let i = 0; i < branchCount; i++) {
-      const u = .09 + i / (branchCount - 1) * .82, o = trunkCurve.getPointAt(u), side = i % 2 ? -1 : 1, len = 1.1 + (i % 6) * .32;
-      const e = o.clone().add(new THREE.Vector3(side * len, .35 + (i % 4) * .18, .14 * Math.sin(i)));
-      const m = o.clone().lerp(e, .52).add(new THREE.Vector3(side * .24, .18, .08));
+    const branchCurves = [], branchMeshes = [];
+    const mainBranches = [[.12, -1, .92], [.20, 1, .98], [.29, -1, 1.38], [.38, 1, 1.65], [.47, -1, 1.75], [.55, 1, 1.92], [.63, -1, 1.72], [.71, 1, 1.55], [.79, -1, 1.42], [.86, 1, 1.18]];
+    mainBranches.forEach(([u, side, len]) => {
+      const o = trunkCurve.getPointAt(u), e = o.clone().add(new THREE.Vector3(side * len, .62 + (u - .5) * 1.2, .05)), m = o.clone().lerp(e, .48).add(new THREE.Vector3(side * .20, .22, .03));
       const curve = new THREE.CatmullRomCurve3([o, m, e], false, 'catmullrom', .45); branchCurves.push(curve);
-      const mesh = new THREE.Mesh(new THREE.TubeGeometry(curve, 70, .035 + (i % 3) * .012, 6, false), new THREE.MeshBasicMaterial({ color: 0x6f3f4b, transparent: true, opacity: .62 }));
-      tree.add(mesh); branches.push(mesh);
-      if (i % 2 === 0) {
-        const subEnd = e.clone().add(new THREE.Vector3(side * .55, .48, .02));
-        const sub = new THREE.CatmullRomCurve3([e, e.clone().lerp(subEnd, .45).add(new THREE.Vector3(side * .1, .12, 0)), subEnd], false, 'catmullrom', .5);
-        const sm = new THREE.Mesh(new THREE.TubeGeometry(sub, 38, .018, 5, false), new THREE.MeshBasicMaterial({ color: 0x7b4a54, transparent: true, opacity: .55 })); tree.add(sm); branches.push(sm);
+      const mesh = new THREE.Mesh(new THREE.TubeGeometry(curve, 80, .065 + (u < .4 ? .018 : 0), 7, false), new THREE.MeshBasicMaterial({ color: 0x6b3e47, transparent: true, opacity: .84 })); tree.add(mesh); branchMeshes.push(mesh);
+      for (let j = 0; j < 3; j++) {
+        const q = .48 + j * .18, p = curve.getPointAt(q), end = p.clone().add(new THREE.Vector3(side * (.55 + j * .14), .35 + j * .13, .02));
+        const sub = new THREE.CatmullRomCurve3([p, p.clone().lerp(end, .5).add(new THREE.Vector3(side * .08, .08, 0)), end], false, 'catmullrom', .5); branchCurves.push(sub);
+        const sm = new THREE.Mesh(new THREE.TubeGeometry(sub, 48, .024 + (2 - j) * .006, 6, false), new THREE.MeshBasicMaterial({ color: 0x75464f, transparent: true, opacity: .7 })); tree.add(sm); branchMeshes.push(sm);
       }
+    });
+    for (let i = 0; i < 7; i++) {
+      const a = (i / 7) * Math.PI * 2, side = i % 2 ? 1 : -1, start = new THREE.Vector3(Math.cos(a) * .10, -4.1, Math.sin(a) * .08), end = new THREE.Vector3(Math.cos(a) * (.55 + .12 * (i % 3)), -4.55 + .15 * (i % 2), Math.sin(a) * .25);
+      const root = new THREE.CatmullRomCurve3([start, start.clone().lerp(end, .5).add(new THREE.Vector3(side * .1, .08, 0)), end], false, 'catmullrom', .5);
+      tree.add(new THREE.Mesh(new THREE.TubeGeometry(root, 32, .035, 6, false), new THREE.MeshBasicMaterial({ color: 0x6a3d46, transparent: true, opacity: .7 })));
     }
 
-    const bloomCount = 1450, bloomPos = new Float32Array(bloomCount * 3), bloomMeta = [];
+    const bloomCount = 1750, bloomPos = new Float32Array(bloomCount * 3), bloomColor = new Float32Array(bloomCount * 3), bloomMeta = [];
+    const palette = [new THREE.Color(0xff9fbd), new THREE.Color(0xffb6cd), new THREE.Color(0xffc8da), new THREE.Color(0xe98eb0)];
     for (let i = 0; i < bloomCount; i++) {
-      const b = branchCurves[Math.floor(Math.random() * branchCurves.length)], u = .45 + Math.random() * .55, p = b.getPointAt(u);
-      const spread = (Math.random() ** 1.7) * .22, a = Math.random() * Math.PI * 2;
-      bloomPos[i * 3] = p.x + Math.cos(a) * spread; bloomPos[i * 3 + 1] = p.y + Math.sin(a) * spread; bloomPos[i * 3 + 2] = p.z + (Math.random() - .5) * .34;
-      bloomMeta.push({ baseX: bloomPos[i * 3], baseY: bloomPos[i * 3 + 1], baseZ: bloomPos[i * 3 + 2], phase: Math.random() * Math.PI * 2, amp: .025 + Math.random() * .07, branch: b });
+      const branch = branchCurves[Math.floor(Math.random() * branchCurves.length)], u = .68 + Math.random() * .32, p = branch.getPointAt(u), spread = (Math.random() ** 1.8) * (.30 + Math.random() * .34), a = Math.random() * Math.PI * 2;
+      const x = p.x + Math.cos(a) * spread, y = p.y + Math.sin(a) * spread * (.72 + Math.random() * .4), z = p.z + (Math.random() - .5) * .46;
+      bloomPos[i * 3] = x; bloomPos[i * 3 + 1] = y; bloomPos[i * 3 + 2] = z;
+      const c = palette[Math.floor(Math.random() * palette.length)]; bloomColor[i * 3] = c.r; bloomColor[i * 3 + 1] = c.g; bloomColor[i * 3 + 2] = c.b;
+      bloomMeta.push({ baseX: x, baseY: y, baseZ: z, phase: Math.random() * Math.PI * 2, amp: .018 + Math.random() * .055 });
     }
-    const bloomGeo = new THREE.BufferGeometry(); bloomGeo.setAttribute('position', new THREE.BufferAttribute(bloomPos, 3));
-    const bloomMat = new THREE.PointsMaterial({ color: 0xffb9cf, size: .075, transparent: true, opacity: .9, blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true });
-    const blooms = new THREE.Points(bloomGeo, bloomMat); tree.add(blooms);
+    const bloomGeo = new THREE.BufferGeometry(); bloomGeo.setAttribute('position', new THREE.BufferAttribute(bloomPos, 3)); bloomGeo.setAttribute('color', new THREE.BufferAttribute(bloomColor, 3));
+    const bloomMat = new THREE.PointsMaterial({ size: .082, transparent: true, opacity: .92, vertexColors: true, depthWrite: false, sizeAttenuation: true }); const blooms = new THREE.Points(bloomGeo, bloomMat); tree.add(blooms);
 
-    const petalCount = 180, petalPos = new Float32Array(petalCount * 3), petalMeta = [];
-    for (let i = 0; i < petalCount; i++) { petalPos[i * 3] = (Math.random() - .5) * 8; petalPos[i * 3 + 1] = 3.8 + Math.random() * 8; petalPos[i * 3 + 2] = (Math.random() - .5) * 4; petalMeta.push({ x: petalPos[i * 3], y: petalPos[i * 3 + 1], z: petalPos[i * 3 + 2], phase: Math.random() * 6.28, speed: .15 + Math.random() * .25 }); }
+    const flowerCount = 115, flowerPos = new Float32Array(flowerCount * 3), flowerColor = new Float32Array(flowerCount * 3);
+    for (let i = 0; i < flowerCount; i++) {
+      const b = branchCurves[(i * 7) % branchCurves.length], p = b.getPointAt(.88 + (i % 5) * .02); flowerPos[i * 3] = p.x + (Math.random() - .5) * .20; flowerPos[i * 3 + 1] = p.y + (Math.random() - .5) * .20; flowerPos[i * 3 + 2] = p.z + .03;
+      const c = palette[(i * 3) % palette.length]; flowerColor[i * 3] = c.r; flowerColor[i * 3 + 1] = c.g; flowerColor[i * 3 + 2] = c.b;
+    }
+    const flowerGeo = new THREE.BufferGeometry(); flowerGeo.setAttribute('position', new THREE.BufferAttribute(flowerPos, 3)); flowerGeo.setAttribute('color', new THREE.BufferAttribute(flowerColor, 3));
+    const flowerMat = new THREE.PointsMaterial({ size: .19, transparent: true, opacity: .45, vertexColors: true, blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true }); const flowers = new THREE.Points(flowerGeo, flowerMat); tree.add(flowers);
+
+    const petalCount = 240, petalPos = new Float32Array(petalCount * 3), petalMeta = [];
+    for (let i = 0; i < petalCount; i++) { petalPos[i * 3] = -2.6 + Math.random() * 6.4; petalPos[i * 3 + 1] = -4.8 + Math.random() * 10.8; petalPos[i * 3 + 2] = -1.4 + Math.random() * 2.8; petalMeta.push({ x: petalPos[i * 3], y: petalPos[i * 3 + 1], z: petalPos[i * 3 + 2], phase: Math.random() * 6.28, speed: .12 + Math.random() * .22, drift: .35 + Math.random() * .55 }); }
     const petalGeo = new THREE.BufferGeometry(); petalGeo.setAttribute('position', new THREE.BufferAttribute(petalPos, 3));
-    const petalMat = new THREE.PointsMaterial({ color: 0xffc8d8, size: .045, transparent: true, opacity: .48, blending: THREE.AdditiveBlending, depthWrite: false }); const petals = new THREE.Points(petalGeo, petalMat); scene.add(petals);
+    const petalMat = new THREE.PointsMaterial({ color: 0xffb6cc, size: .065, transparent: true, opacity: .62, blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true }); const petals = new THREE.Points(petalGeo, petalMat); scene.add(petals);
 
-    const signalCount = 38, signalPos = new Float32Array(signalCount * 3), signalGeo = new THREE.BufferGeometry(); signalGeo.setAttribute('position', new THREE.BufferAttribute(signalPos, 3));
-    const signalMat = new THREE.PointsMaterial({ color: 0xffeef4, size: .06, transparent: true, opacity: .8, blending: THREE.AdditiveBlending, depthWrite: false }); const signals = new THREE.Points(signalGeo, signalMat); tree.add(signals);
-    const glow = new THREE.Mesh(new THREE.SphereGeometry(.65, 24, 24), new THREE.MeshBasicMaterial({ color: 0xff9fbe, transparent: true, opacity: .06, blending: THREE.AdditiveBlending, depthWrite: false })); tree.add(glow);
+    const signalCount = 46, signalPos = new Float32Array(signalCount * 3), signalGeo = new THREE.BufferGeometry(); signalGeo.setAttribute('position', new THREE.BufferAttribute(signalPos, 3));
+    const signalMat = new THREE.PointsMaterial({ color: 0xffeef4, size: .055, transparent: true, opacity: .72, blending: THREE.AdditiveBlending, depthWrite: false }); const signals = new THREE.Points(signalGeo, signalMat); tree.add(signals);
+    const glow = new THREE.Mesh(new THREE.SphereGeometry(.72, 24, 24), new THREE.MeshBasicMaterial({ color: 0xff9fbe, transparent: true, opacity: .055, blending: THREE.AdditiveBlending, depthWrite: false })); tree.add(glow);
 
-    const branchTargets = { 0: 0, 1: 14, 2: 9, 3: 4, 4: 20, 5: 12 };
-    const pointer = { x: 0, y: 0 }, pointerSpring = { x: 0, y: 0 }, previousPointer = { x: 0, y: 0 };
-    const onPointer = e => { pointer.x = (e.clientX / innerWidth - .5) * 2; pointer.y = (e.clientY / innerHeight - .5) * 2 };
-    const onResize = () => { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix() };
+    const branchTargets = { 0: 0, 1: 4, 2: 8, 3: 16, 4: 24, 5: 12 };
+    const pointer = { x: 0, y: 0 }, pointerSpring = { x: 0, y: 0 }, pointerWorld = new THREE.Vector3(), raycaster = new THREE.Raycaster(), mouseNdc = new THREE.Vector2(), interactionPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+    const onPointer = e => {
+      mouseNdc.set((e.clientX / window.innerWidth) * 2 - 1, -(e.clientY / window.innerHeight) * 2 + 1); raycaster.setFromCamera(mouseNdc, camera); raycaster.ray.intersectPlane(interactionPlane, pointerWorld);
+      tree.worldToLocal(pointerWorld); pointer.x = THREE.MathUtils.clamp(pointerWorld.x / 4.7, -1, 1); pointer.y = THREE.MathUtils.clamp(pointerWorld.y / 5.7, -1, 1);
+    };
+    const onResize = () => { renderer.setSize(window.innerWidth, window.innerHeight); camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix() };
     addEventListener('pointermove', onPointer, { passive: true }); addEventListener('resize', onResize);
-    const clock = new THREE.Clock(); let frame, currentStage = targetStage.current, lastStage = targetStage.current, transitionStart = performance.now(), transitionFrom = targetStage.current;
-    let focus = new THREE.Vector3();
-    const branchPoint = s => s === 0 ? new THREE.Vector3(0, 0, 0) : branchCurves[branchTargets[s]].getPointAt(.74);
 
+    const clock = new THREE.Clock(); let frame, lastStage = targetStage.current, transitionStart = performance.now(), transitionFrom = targetStage.current;
+    const focus = new THREE.Vector3();
+    const branchPoint = s => s === 0 ? new THREE.Vector3(0, 0, 0) : branchCurves[branchTargets[s]].getPointAt(.84);
     const animate = () => {
-      frame = requestAnimationFrame(animate); const t = clock.getElapsedTime(); const desired = targetStage.current;
+      frame = requestAnimationFrame(animate); const t = clock.getElapsedTime(), desired = targetStage.current;
       if (desired !== lastStage) { transitionFrom = lastStage; lastStage = desired; transitionStart = performance.now() }
-      currentStage += (desired - currentStage) * .045;
-      const raw = Math.min(1, (performance.now() - transitionStart) / 1150), trans = raw * raw * (3 - 2 * raw);
-      const from = branchPoint(transitionFrom), to = branchPoint(desired);
-      let routeFocus;
-      if (raw < 1) { const arcA = from.clone().multiplyScalar(1 - trans), arcB = to.clone().multiplyScalar(trans); routeFocus = arcA.add(arcB); routeFocus.multiplyScalar(Math.sin(Math.PI * trans) * .15 + 1); }
-      else routeFocus = to;
-      if (desired === 0) routeFocus.set(0, 0, 0);
-      focus.lerp(routeFocus, .065);
-      pointerSpring.x += (pointer.x - pointerSpring.x) * .055; pointerSpring.y += (pointer.y - pointerSpring.y) * .055;
-      const windX = pointerSpring.x * .12, windY = -pointerSpring.y * .08;
-      world.rotation.y += (windX - world.rotation.y) * .025; world.rotation.x += (windY - world.rotation.x) * .025;
-      const focusZ = desired === 0 ? 11.6 : 7.5, z = focusZ + Math.sin(Math.PI * trans) * 2.2;
-      camera.position.z += (z - camera.position.z) * .045;
-      camera.position.x += (focus.x * .28 + pointerSpring.x * .34 - camera.position.x) * .045;
-      camera.position.y += (focus.y * .12 - pointerSpring.y * .20 - camera.position.y) * .045;
-      camera.lookAt(focus.x * .75, focus.y * .72, focus.z);
+      const raw = Math.min(1, (performance.now() - transitionStart) / 1150), trans = raw * raw * (3 - 2 * raw), from = branchPoint(transitionFrom), to = branchPoint(desired);
+      const routeFocus = raw < 1 ? from.clone().multiplyScalar(1 - trans).add(to.clone().multiplyScalar(trans)) : to; if (desired === 0) routeFocus.set(0, 0, 0); focus.lerp(routeFocus, .065);
+      pointerSpring.x += (pointer.x - pointerSpring.x) * .075; pointerSpring.y += (pointer.y - pointerSpring.y) * .075;
+      world.rotation.y += (pointerSpring.x * .095 - world.rotation.y) * .025; world.rotation.x += (-pointerSpring.y * .055 - world.rotation.x) * .025;
+      const focusZ = desired === 0 ? 11.4 : 7.15, z = focusZ + Math.sin(Math.PI * trans) * 2.0; camera.position.z += (z - camera.position.z) * .045; camera.position.x += (focus.x * .22 + pointerSpring.x * .20 - camera.position.x) * .045; camera.position.y += (focus.y * .10 - pointerSpring.y * .13 - camera.position.y) * .045; camera.lookAt(focus.x * .68, focus.y * .62, focus.z);
 
       const selected = branchTargets[desired];
-      branches.forEach((b, i) => { const active = desired === 0 || i === selected; const target = desired === 0 ? .54 : active ? .95 : .10; b.material.opacity += (target - b.material.opacity) * .045; });
-      trunk.material.opacity += ((desired === 0 ? .88 : .42) - trunk.material.opacity) * .04;
-      glow.position.lerp(desired === 0 ? new THREE.Vector3(0, 0, 0) : branchCurves[selected].getPoint(1), .07); glow.material.opacity = desired === 0 ? .035 : .08 + .025 * Math.sin(t * 1.6); glow.scale.setScalar(1 + Math.sin(t * 1.4) * .08);
+      branchMeshes.forEach((b, i) => { const active = desired === 0 || i === selected || i === selected + 1 || i === selected + 2; const target = desired === 0 ? .78 : active ? .92 : .16; b.material.opacity += (target - b.material.opacity) * .045; });
+      trunk.material.opacity += ((desired === 0 ? .92 : .50) - trunk.material.opacity) * .04; flowers.material.opacity += (.38 + .10 * Math.sin(t * 1.2) - flowers.material.opacity) * .04;
+      glow.position.lerp(desired === 0 ? new THREE.Vector3(0, 0, 0) : branchCurves[selected].getPoint(1), .07); glow.material.opacity = desired === 0 ? .035 : .075 + .025 * Math.sin(t * 1.6); glow.scale.setScalar(1 + Math.sin(t * 1.4) * .08);
 
-      const bp = bloomGeo.attributes.position.array;
-      for (let i = 0; i < bloomMeta.length; i++) { const d = bloomMeta[i]; const dx = d.baseX - (pointerSpring.x * 2.1), dy = d.baseY - (-pointerSpring.y * 1.8), dist = Math.sqrt(dx * dx + dy * dy) + .001; const force = Math.max(0, 1 - dist / 2.6); const fx = force * (dx / dist) * .45, fy = force * (dy / dist) * .35; bp[i * 3] = d.baseX + Math.sin(t * .45 + d.phase) * d.amp + fx; bp[i * 3 + 1] = d.baseY + Math.cos(t * .38 + d.phase) * d.amp + fy; bp[i * 3 + 2] = d.baseZ + Math.sin(t * .31 + d.phase) * .04 + force * .10; }
+      const bp = bloomGeo.attributes.position.array, mx = pointerWorld.x, my = pointerWorld.y;
+      for (let i = 0; i < bloomMeta.length; i++) { const d = bloomMeta[i], dx = d.baseX - mx, dy = d.baseY - my, dist = Math.sqrt(dx * dx + dy * dy) + .0001, force = Math.max(0, 1 - dist / 1.75), eased = force * force; bp[i * 3] = d.baseX + Math.sin(t * .55 + d.phase) * d.amp + (dx / dist) * eased * .34; bp[i * 3 + 1] = d.baseY + Math.cos(t * .48 + d.phase) * d.amp + (dy / dist) * eased * .30; bp[i * 3 + 2] = d.baseZ + Math.sin(t * .35 + d.phase) * .035 + eased * .08; }
       bloomGeo.attributes.position.needsUpdate = true;
+
       const pp = petalGeo.attributes.position.array;
-      for (let i = 0; i < petalMeta.length; i++) { const d = petalMeta[i]; let y = d.y - (t * d.speed) % 12; if (y < -5) y += 12; pp[i * 3] = d.x + Math.sin(t * .45 + d.phase) * .65 + pointerSpring.x * .22; pp[i * 3 + 1] = y; pp[i * 3 + 2] = d.z + Math.cos(t * .33 + d.phase) * .35; }
+      for (let i = 0; i < petalMeta.length; i++) { const d = petalMeta[i]; let y = d.y - (t * d.speed) % 11; if (y < -5.2) y += 11; let x = d.x + Math.sin(t * .45 + d.phase) * d.drift + pointerSpring.x * .30, zp = d.z + Math.cos(t * .35 + d.phase) * .32; const dx = x - mx, dy = y - my, dist = Math.sqrt(dx * dx + dy * dy) + .001, force = Math.max(0, 1 - dist / 1.35); x += (dx / dist) * force * .45; y += (dy / dist) * force * .25; zp += force * .10; pp[i * 3] = x; pp[i * 3 + 1] = y; pp[i * 3 + 2] = zp; }
       petalGeo.attributes.position.needsUpdate = true;
+
       const sp = signalGeo.attributes.position.array, curve = branchCurves[selected];
-      for (let i = 0; i < signalCount; i++) { const q = (i / signalCount + t * .075) % 1; const p = q < .56 ? trunkCurve.getPointAt(q / .56) : curve.getPointAt((q - .56) / .44); sp[i * 3] = p.x; sp[i * 3 + 1] = p.y; sp[i * 3 + 2] = p.z; }
-      signalGeo.attributes.position.needsUpdate = true; signalMat.opacity = desired === 0 ? .28 : .8;
-      previousPointer.x = pointerSpring.x; previousPointer.y = pointerSpring.y;
-      renderer.render(scene, camera);
+      for (let i = 0; i < signalCount; i++) { const q = (i / signalCount + t * .075) % 1, p = q < .56 ? trunkCurve.getPointAt(q / .56) : curve.getPointAt((q - .56) / .44); sp[i * 3] = p.x; sp[i * 3 + 1] = p.y; sp[i * 3 + 2] = p.z; }
+      signalGeo.attributes.position.needsUpdate = true; signalMat.opacity = desired === 0 ? .22 : .72; renderer.render(scene, camera);
     };
     animate();
-    return () => { cancelAnimationFrame(frame); removeEventListener('pointermove', onPointer); removeEventListener('resize', onResize); renderer.dispose();[trunk.geometry, ...branches.map(b => b.geometry), bloomGeo, petalGeo, signalGeo, glow.geometry].forEach(g => g.dispose());[trunk.material, ...branches.map(b => b.material), bloomMat, petalMat, signalMat, glow.material].forEach(m => m.dispose()); };
+    return () => { cancelAnimationFrame(frame); removeEventListener('pointermove', onPointer); removeEventListener('resize', onResize); renderer.dispose();[trunk.geometry, ...branchMeshes.map(b => b.geometry), bloomGeo, flowerGeo, petalGeo, signalGeo, glow.geometry].forEach(g => g.dispose());[trunk.material, ...branchMeshes.map(b => b.material), bloomMat, flowerMat, petalMat, signalMat, glow.material].forEach(m => m.dispose()); };
   }, [theme]);
   return <canvas ref={ref} className="idea-canvas" aria-hidden="true" />;
 }
-
 function ScrollToTop() { const { pathname } = useLocation(); useEffect(() => { window.scrollTo({ top: 0, behavior: 'instant' }) }, [pathname]); return null; }
 function Page({ children }) { return <div className="page-enter">{children}</div> }
 function SectionIntro({ eyebrow, title, note }) { return <div className="section-head"><div><span className="kicker mono">{eyebrow}</span><h2 className="section-title">{title}</h2></div><p className="section-note">{note}</p></div> }
