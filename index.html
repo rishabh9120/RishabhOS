@@ -6,11 +6,29 @@
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <meta name="theme-color" content="#08070a" />
     <title>Rishabh Agrawal — RishabhOS</title>
+    <meta name="description"
+        content="Personal site of Rishabh Agrawal — professional work, experiments and side projects, navigated through a living 3D tree." />
+
+    <!-- Basic Open Graph / Twitter Card tags so links shared on social media
+       and chat apps render with a title/description instead of a bare URL.
+       Add a real og:image (e.g. /og.png, ~1200x630) once one exists. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Rishabh Agrawal — RishabhOS" />
+    <meta property="og:description"
+        content="Personal site of Rishabh Agrawal — professional work, experiments and side projects, navigated through a living 3D tree." />
+    <meta name="twitter:card" content="summary" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;1,500&display=swap"
         rel="stylesheet">
+
+    <!-- Sets data-theme before first paint - see public/theme-init.js.
+       Kept as a real file (not an inline script) so the CSP in
+       public/_headers / vercel.json can use script-src 'self' without
+       'unsafe-inline'. -->
+    <script src="/theme-init.js"></script>
 </head>
 
 <body>
