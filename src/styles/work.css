@@ -1,0 +1,25 @@
+.timeline { border-top: 1px solid var(--line); }
+.timeline-row { display: grid; grid-template-columns: 120px 1fr 1.2fr; gap: 32px; padding: 28px 0; border-bottom: 1px solid var(--line); align-items: start; }
+.timeline-row h3 { font-size: 1.25rem; font-weight: 600; letter-spacing: -.02em; }
+.timeline-row .role, .timeline-row .summary { color: var(--muted); }
+.timeline-row .role { margin-top: 2px; }
+.timeline-row.is-lead { padding: 44px 0; }
+.timeline-row.is-lead h3 { font-size: clamp(1.5rem, 3vw, 2.25rem); letter-spacing: -.03em; }
+.year { color: var(--accent-ink); font-size: 12px; padding-top: 6px; }
+
+/* Four cells, no empty tile: one large on the left, two on top right, one wide below. */
+.metrics-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 16px; }
+.metric { display: flex; flex-direction: column; justify-content: flex-end; gap: 6px; min-height: 168px; padding: 28px; border: 1px solid var(--line); background: var(--card); }
+.metric strong { font-size: clamp(2.5rem, 5vw, 4.25rem); line-height: 1; letter-spacing: -.05em; font-weight: 650; }
+.metric span { color: var(--muted); font-size: .9375rem; max-width: 30ch; }
+.metric--1 { grid-row: span 2; min-height: 352px; background: linear-gradient(160deg, color-mix(in srgb, var(--pink) 14%, var(--card)), var(--card) 75%); }
+.metric--1 strong { font-size: clamp(4rem, 9vw, 7.5rem); color: var(--pink); }
+.metric--4 { grid-column: span 2; background: radial-gradient(100% 120% at 100% 100%, color-mix(in srgb, var(--pink) 9%, var(--card)), var(--card) 70%); }
+
+@media (max-width: 768px) {
+  .timeline-row { grid-template-columns: 76px 1fr; gap: 6px 20px; padding: 22px 0; }
+  .timeline-row .summary { grid-column: 2; }
+  .metrics-grid { grid-template-columns: 1fr 1fr; }
+  .metric--1 { grid-column: span 2; grid-row: auto; min-height: 220px; }
+  .metric--4 { grid-column: span 2; }
+}

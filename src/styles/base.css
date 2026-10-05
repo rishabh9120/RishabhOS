@@ -1,0 +1,66 @@
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.65;
+  transition: background-color .35s ease, color .35s ease;
+}
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; }
+h1, h2, h3, p { margin: 0; }
+svg { flex: none; }
+.mono { font-family: var(--font-mono); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.inline-icon { vertical-align: -0.1em; }
+
+:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 3px; }
+
+.container { width: min(1180px, calc(100% - 48px)); margin-inline: auto; }
+main { min-height: 100dvh; }
+main:focus { outline: none; }   /* focus is moved here after a route change so screen readers announce the new page */
+section { padding: clamp(64px, 9vw, 120px) 0; }
+
+/* Fixed layers behind everything: the Three.js canvas, a vignette, and film grain. */
+.idea-canvas { position: fixed; inset: 0; width: 100%; height: 100%; z-index: var(--z-bg); pointer-events: none; }
+.vignette { position: fixed; inset: 0; z-index: var(--z-vignette); pointer-events: none; background: radial-gradient(circle at 70% 42%, transparent 20%, var(--vignette) 100%); transition: background .25s ease; }
+.noise { position: fixed; inset: 0; z-index: var(--z-noise); pointer-events: none; opacity: .035; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.7'/%3E%3C/svg%3E"); }
+
+/* Small screens: text sits over the tree, so calm it with a uniform wash. */
+@media (max-width: 768px) { .vignette { background: color-mix(in srgb, var(--bg) 48%, transparent); } }
+
+/* No WebGL (or the 3D layer failed): soft accent glow where the tree would be. */
+html[data-webgl="off"] body { background-image: radial-gradient(60% 50% at 75% 40%, var(--tint), transparent); }
+
+/* Type */
+.eyebrow { display: inline-block; color: var(--accent-ink); font: 12px/1.4 var(--font-mono); letter-spacing: .14em; text-transform: uppercase; }
+.display, .page-title, .hero-title { font-weight: 650; letter-spacing: -.045em; line-height: 1.1; }
+.display { font-size: clamp(2.25rem, 5.4vw, 4.5rem); margin: 16px 0; }
+.page-title { font-size: clamp(2.5rem, 5.2vw, 4.5rem); margin: 18px 0 20px; }
+.hero-title { font-size: clamp(2.75rem, 6.2vw, 5.25rem); margin: 20px 0 24px; }
+/* Pink serif italic emphasis is the site's signature (documented brand override).
+   Line-height and padding keep descenders (y, g, j) from clipping. */
+.display em, .page-title em, .hero-title em, .statement-text em, footer em {
+  display: inline-block; padding-bottom: .1em;
+  font-family: var(--font-serif); font-style: italic; font-weight: 500; color: var(--pink);
+}
+.statement-text em { color: inherit; }
+p { max-width: 65ch; }
+
+/* Motion primitives (hidden states exist ONLY when motion is allowed) */
+@media (prefers-reduced-motion: no-preference) {
+  [data-reveal] { opacity: 0; transform: translateY(18px); transition: opacity .7s var(--ease) var(--d, 0ms), transform .7s var(--ease) var(--d, 0ms); }
+  [data-reveal][data-in] { opacity: 1; transform: none; }
+  .rise { animation: rise .8s var(--ease) var(--d, 0ms) both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(14px); } }
+  /* Page change (see app/PageTransition.jsx; keep the durations in sync). */
+  .stage--exit { animation: stageOut 220ms cubic-bezier(.4, 0, 1, 1) both; pointer-events: none; }
+  .stage--enter { animation: stageIn 560ms var(--ease) both; }
+  @keyframes stageOut { to { opacity: 0; transform: translate3d(var(--out-x, 0), var(--out-y, -12px), 0); } }
+  @keyframes stageIn { from { opacity: 0; transform: translate3d(var(--in-x, 0), var(--in-y, 16px), 0); } }
+}

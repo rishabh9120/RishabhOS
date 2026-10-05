@@ -22,27 +22,48 @@ Two configs are included:
   Vercel does not read `_headers` files - it needs its own `headers` array.
   If you add or change a header, update both files.
 
-## What changed in this pass
+## Project layout
 
-**Theme system** (`src/main.jsx`, `useTheme`) - now follows the OS light/dark
-setting live until the visitor explicitly toggles it, persists that explicit
-choice, stays in sync across open tabs, and no longer flashes the wrong
-theme on first load (`public/theme-init.js`, loaded from `index.html`,
-sets `data-theme` before the stylesheet or React finish loading).
+```
+src/
+  main.jsx          entry: fonts, styles, <App />
+  app/              App root, Layout (nav, footer, routes), nav + stage config
+  pages/            one file per route (Home, Work, Lab, ProjectShowcase, Life, Now, Private, NotFound)
+  components/       shared UI (Reveal, SectionHeading, ProjectCard, ThemeToggle, ErrorBoundary, Page)
+  three/            procedural cherry-blossom tree (tree.js) + the lazy-loaded Background3D
+  theme/            useTheme (mirrors public/theme-init.js, keep the two in sync)
+  data/             ALL editable content: projects, experience, life, now, profile
+  styles/           tokens, base, chrome, components, then one file per page area
+```
 
-**Background tree** (`src/main.jsx`, `buildTree`) - rebuilt as genuine
-recursive branching (parent → children → grandchildren) instead of three
-nested loops with fixed counts: primary limbs are placed in a golden-angle
-spiral around the trunk so they don't clump on one side, each fork has an
-"apical leader" that continues roughly the parent's direction while
-siblings peel off at wider, fully-3D angles, and outer twigs droop slightly
-more with depth (a weeping-cherry look). Generation is seeded, so the shape
-is the same on every load rather than a new random result each visit.
+## Adding a project
 
-**Comments** - every non-trivial function in `src/main.jsx` now explains
-what it does and why, `src/data.js` documents the project schema, and
-`src/styles.css` has section banners marking which page each rule block
-belongs to.
+Edit `src/data/projects.js` (the schema is documented at the top of the file).
+Every entry gets a page at `/lab/<slug>`. `status` decides where it shows on `/lab`:
+`shipped` appears under **Completed**, `building` and `planned` under **Upcoming**.
+`npm run dev` throws a readable error on a duplicate slug, bad status or bad category.
+
+Photos: put project covers in `public/projects/` and Life photos in `public/life/`,
+then reference them from the data files (sizes are noted in each file).
+
+## Design notes
+
+- **Brand** (unchanged): pink accent `#ff9fbd` (dark) / `#d9658d` (light), Inter + Playfair Display
+  italic + DM Mono, the "R-ishabh *Agrawal*" wordmark, the tree. `--accent-ink` is a deeper pink used
+  only for small text in light mode, because the brand pink is 3.03:1 there.
+- **Shape rule:** interactive controls are pills; surfaces and tags are square.
+- **Motion:** all timings are delta-time based (identical at 60 and 144Hz). Everything honours
+  `prefers-reduced-motion` (the tree renders one still frame per route, page changes swap instantly).
+  - *Tree* (`src/three/Background3D.jsx`, tuning knobs at the top): grows in from the roots on load
+    (quick replay later in the same session), blossoms bloom as twigs finish, wind with gusts,
+    camera flight on route change (dolly, FOV breathe, slight roll) that lights up the whole focused
+    limb and releases a petal burst, scroll and pointer parallax, click for a gust of petals.
+  - *Pages* (`src/app/PageTransition.jsx` + `.stage--*` in `styles/base.css`): the old page animates out,
+    swaps while invisible (scroll reset and focus move to `<main>` happen there), the new page enters.
+    Direction follows nav order. Keep `EXIT_MS` / `ENTER_MS` in sync with the CSS durations.
+  - *Pointer/section effects:* CSS scroll reveals, spotlight cards, hover and active feedback.
+- **Fonts are self-hosted** (`@fontsource`), so the CSP allows no third-party font hosts.
+- **Layout rule:** text lives on the left; the tree owns the right. Keep new copy out of the trunk area.
 
 ## Security & roadmap notes
 
@@ -63,26 +84,14 @@ A few things worth doing before this grows past a static portfolio:
   read different files. They now include a real Content-Security-Policy,
   HSTS, and `X-Frame-Options` in addition to the headers that were already
   there. If the CSP ever needs loosening (e.g. adding an analytics script
-  or a new font host), update it in both files.
-- **The contact email is plaintext** in `src/data.js` and in the built JS
+  or a new font host), update it in both files. Fonts are now self-hosted, so `font-src` is `'self'`.
+- **The contact email is plaintext** in `src/data/profile.js` and in the built JS
   bundle, so it will get scraped by bots eventually. Fine for now; if spam
   becomes a problem, route contact through a form backed by a small
   serverless function instead of a `mailto:` link.
-- **Three.js dominates the bundle size** (~750KB of the ~790KB JS bundle).
-  It's currently loaded eagerly on every route. Worth lazy-loading
-  `Background3D` with `React.lazy()`/dynamic `import()` so the initial
-  page load doesn't need to fetch and parse Three.js before showing any
-  content, especially on slow connections/mobile.
-- **No error boundary around the 3D background.** If WebGL is unavailable
-  (disabled, unsupported browser, driver issue) or the tree-building code
-  throws, it currently takes down the whole app instead of just failing to
-  render the background. Worth wrapping `Background3D` in a React error
-  boundary (or a `try/catch` + WebGL feature check) that falls back to a
-  plain background.
-- **Adding projects to `src/data.js`** is manual and unchecked - a typo'd
-  or duplicate `slug` fails silently (last one wins / 404s). If the list
-  grows, consider a small dev-time check (or converting to TypeScript) that
-  asserts slugs are unique and required fields are present.
+- **Three.js is lazy-loaded** (done): the initial JS is ~84KB gzipped; the ~137KB gzipped Three.js chunk loads after first paint.
+- **The 3D background is guarded** (done): WebGL feature check plus an error boundary fall back to a plain gradient.
+- **Project data is validated** (done) in dev; see `src/data/index.js`.
 - **No sitemap/robots.txt** yet, and Open Graph tags now exist but have no
   `og:image`. Worth adding both once there's real content on `/work` and
   `/lab` worth indexing/sharing.

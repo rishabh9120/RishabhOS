@@ -1,0 +1,60 @@
+/*
+ * Design tokens.
+ *
+ * Brand accent (--pink / --pink2) and the neutral bases are unchanged from the
+ * previous version. New in this pass:
+ *   --accent-ink   accent for SMALL text. Dark: same pink. Light: a deeper pink,
+ *                  because #d9658d is only 3.03:1 on the light background.
+ *   --card         slightly more opaque so text stays legible over the 3D tree.
+ *
+ * Shape rule (one system): interactive controls are pills (buttons, filter chips,
+ * nav chip, theme toggle). Surfaces and tags are square (radius 0).
+ *
+ * Z-index scale: bg layers are negative; nav 20; route progress 30.
+ */
+:root,
+:root[data-theme="dark"],
+body.theme-dark {
+  color-scheme: dark;
+  --bg: #08070a;
+  --fg: #f4edf0;
+  --muted: #a79ba0;
+  --line: rgba(255, 255, 255, .12);
+  --card: rgba(20, 17, 23, .66);
+  --pink: #ff9fbd;
+  --pink2: #e98eb0;
+  --accent-ink: #ff9fbd;
+  --overlay: rgba(8, 7, 10, .72);
+  --vignette: rgba(8, 7, 10, .42);
+  --shadow: 0 24px 80px rgba(8, 7, 10, .5);
+}
+
+:root[data-theme="light"],
+body.theme-light {
+  color-scheme: light;
+  --bg: #f6f1f2;
+  --fg: #21191d;
+  --muted: #75666d;
+  --line: rgba(32, 22, 27, .14);
+  --card: rgba(255, 255, 255, .72);
+  --pink: #d9658d;
+  --pink2: #c9577e;
+  --accent-ink: #b03d6a;
+  --overlay: rgba(246, 241, 242, .82);
+  --vignette: rgba(80, 55, 65, .16);
+  --shadow: 0 24px 80px rgba(70, 40, 50, .12);
+}
+
+:root {
+  --font-sans: 'Inter Variable', Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-serif: 'Playfair Display Variable', 'Playfair Display', Georgia, serif;
+  --font-mono: 'DM Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --ease: cubic-bezier(.2, .7, .2, 1);
+  --nav-h: 64px;
+  --tint: color-mix(in srgb, var(--pink) 12%, transparent);
+  --z-bg: -5;
+  --z-vignette: -4;
+  --z-noise: -3;
+  --z-nav: 20;
+  --z-progress: 30;
+}
