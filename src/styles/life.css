@@ -1,6 +1,18 @@
 /* Life: 12-col bento, 7+5 then 5+7. Now: 2x2 grid. Private: placeholder panel. */
 .life-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
-.life-card { display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--line); background: var(--card); }
+.life-visual {
+  display: block; width: 100%; aspect-ratio: 16 / 10; overflow: hidden;
+  position: relative; background: color-mix(in srgb, var(--card) 85%, var(--bg));
+  border-bottom: 1px solid var(--line);
+}
+.life-svg { width: 100%; height: 100%; display: block; transition: transform .6s var(--ease); }
+.life-card:hover .life-svg { transform: scale(1.03); }
+.life-card {
+  display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--line);
+  background: var(--card); border-radius: 8px;
+  transition: transform .3s var(--ease), border-color .3s, box-shadow .3s;
+}
+.life-card:hover { border-color: color-mix(in srgb, var(--pink) 50%, transparent); box-shadow: var(--shadow); }
 .life-card--1, .life-card--4 { grid-column: span 7; }
 .life-card--2, .life-card--3 { grid-column: span 5; }
 .life-media { display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; }
@@ -12,11 +24,19 @@
 .life-tags::first-letter { text-transform: uppercase; }
 .life-tags { display: block; margin-top: 16px; font: 12px var(--font-mono); color: var(--accent-ink); }
 
-.now-grid { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--line); }
-.now-cell { padding: 32px 28px; border-bottom: 1px solid var(--line); }
-.now-cell:nth-child(odd) { border-right: 1px solid var(--line); }
-.now-cell b { display: block; margin-bottom: 12px; font: 500 12px var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--accent-ink); }
-.now-cell span { display: block; font-size: clamp(1.125rem, 2vw, 1.5rem); line-height: 1.4; letter-spacing: -.01em; }
+.now-grid { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--line); gap: 1px; background: var(--line); }
+.now-cell {
+  padding: 36px 32px; background: var(--card);
+  transition: background .25s, transform .25s var(--ease);
+}
+.now-cell:hover { background: color-mix(in srgb, var(--pink) 5%, var(--card)); }
+.now-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.now-cell b { font: 500 12px var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--accent-ink); }
+.now-pulse-beacon {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--pink);
+  box-shadow: 0 0 10px var(--pink); animation: hudPulse 2.2s infinite;
+}
+.now-cell span { display: block; font-size: clamp(1.15rem, 2vw, 1.55rem); line-height: 1.45; letter-spacing: -.01em; }
 
 .private-panel { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; margin-top: 40px; max-width: 520px; padding: 28px; border: 1px solid var(--line); background: var(--card); }
 .private-icon { font-size: 28px; color: var(--accent-ink); }

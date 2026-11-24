@@ -14,8 +14,12 @@ export default function Now() {
         <section>
           <div className="now-grid">
             {now.map((n, i) => (
-              <Reveal key={n.label} delay={i * 70} className="now-cell">
-                <b className="mono">{n.label}</b><span>{n.text}</span>
+              <Reveal key={n.label} delay={i * 70} className="now-cell spot">
+                <div className="now-header">
+                  <b className="mono">{n.label}</b>
+                  <span className="now-pulse-beacon" aria-hidden="true" />
+                </div>
+                <span>{n.text}</span>
               </Reveal>
             ))}
           </div>

@@ -75,12 +75,69 @@ function makeBranchGeometry(curve, radiusStart, radiusEnd, radial = 7, tubular =
 }
 
 export function createPetalTexture() {
+  const canvas = document.createElement('canvas'); canvas.width = 128; canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  
+  // High-fidelity sakura petal shape with heart notch at the tip
+  ctx.save();
+  ctx.translate(64, 64);
+  ctx.rotate(-0.15);
+  
+  ctx.beginPath();
+  // Start from petal base
+  ctx.moveTo(0, 48);
+  // Left curve to petal shoulder
+  ctx.bezierCurveTo(-38, 30, -50, -10, -32, -42);
+  // Left notch tip
+  ctx.bezierCurveTo(-24, -54, -8, -52, 0, -40);
+  // Right notch tip
+  ctx.bezierCurveTo(8, -52, 24, -54, 32, -42);
+  // Right curve to petal shoulder & base
+  ctx.bezierCurveTo(50, -10, 38, 30, 0, 48);
+  ctx.closePath();
+
+  // Multi-stop radial gradient for translucent blossom look with pearlescent rim
+  const g = ctx.createRadialGradient(0, 10, 4, 0, 0, 56);
+  g.addColorStop(0, 'rgba(255, 250, 252, 0.98)');
+  g.addColorStop(0.35, 'rgba(255, 218, 232, 0.92)');
+  g.addColorStop(0.7, 'rgba(255, 160, 192, 0.78)');
+  g.addColorStop(0.92, 'rgba(235, 110, 155, 0.45)');
+  g.addColorStop(1, 'rgba(215, 80, 130, 0)');
+  ctx.fillStyle = g;
+  ctx.fill();
+
+  // Subtle central petal vein
+  ctx.strokeStyle = 'rgba(255, 235, 245, 0.35)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(0, 42);
+  ctx.quadraticCurveTo(2, 0, 0, -32);
+  ctx.stroke();
+
+  ctx.restore();
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+export function createGlowTexture() {
   const canvas = document.createElement('canvas'); canvas.width = 64; canvas.height = 64;
   const ctx = canvas.getContext('2d');
-  const g = ctx.createRadialGradient(32, 28, 2, 32, 32, 30);
-  g.addColorStop(0, 'rgba(255,235,243,1)'); g.addColorStop(.55, 'rgba(255,170,199,.95)'); g.addColorStop(1, 'rgba(226,110,151,0)');
-  ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(32, 32, 20, 28, -.35, 0, Math.PI * 2); ctx.fill();
-  const tex = new THREE.CanvasTexture(canvas); tex.colorSpace = THREE.SRGBColorSpace; return tex;
+  const g = ctx.createRadialGradient(32, 32, 1, 32, 32, 30);
+  g.addColorStop(0, 'rgba(255, 255, 255, 1)');
+  g.addColorStop(0.2, 'rgba(255, 220, 235, 0.95)');
+  g.addColorStop(0.5, 'rgba(255, 150, 190, 0.45)');
+  g.addColorStop(0.8, 'rgba(235, 100, 150, 0.12)');
+  g.addColorStop(1, 'rgba(200, 80, 130, 0)');
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.arc(32, 32, 30, 0, Math.PI * 2);
+  ctx.fill();
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
 }
 
 // Rotates `parentDir` by `angle` radians towards a random point on the cone
@@ -134,8 +191,20 @@ export function buildTree(seed = 20240517) {
   const branchParents = [];   // parent branch index (-1 = grows from the trunk)
   const terminalIndices = [];  // branch index of each entry in terminalTwigs
   const materials = [];
-  const woodMain = new THREE.MeshBasicMaterial({ color: 0x432831, transparent: true, opacity: .92 });
-  const woodLight = new THREE.MeshBasicMaterial({ color: 0x70404b, transparent: true, opacity: .82 });
+  const woodMain = new THREE.MeshStandardMaterial({
+    color: 0x3d222b,
+    roughness: 0.76,
+    metalness: 0.12,
+    transparent: true,
+    opacity: .94
+  });
+  const woodLight = new THREE.MeshStandardMaterial({
+    color: 0x6e3b48,
+    roughness: 0.68,
+    metalness: 0.16,
+    transparent: true,
+    opacity: .85
+  });
   materials.push(woodMain, woodLight);
 
   /* --- Trunk: a gently S-curved column the whole canopy grows out of --- */

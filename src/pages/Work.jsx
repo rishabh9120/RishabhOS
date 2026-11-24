@@ -25,8 +25,19 @@ export default function Work() {
           <div className="timeline">
             {experience.map((e, i) => (
               <Reveal key={e.org} delay={i * 70} className={`timeline-row${i === 0 ? ' is-lead' : ''}`}>
-                <span className="year mono">{e.years}</span>
-                <div><h3>{e.org}</h3><p className="role">{e.role}</p></div>
+                <div className="timeline-meta">
+                  <span className="year mono">{e.years}</span>
+                  <span className="timeline-dot" aria-hidden="true" />
+                </div>
+                <div>
+                  <h3>{e.org}</h3>
+                  <p className="role">{e.role}</p>
+                  {e.tags && (
+                    <div className="timeline-tags">
+                      {e.tags.map(t => <span key={t} className="tag mono">{t}</span>)}
+                    </div>
+                  )}
+                </div>
                 <p className="summary">{e.summary}</p>
               </Reveal>
             ))}
@@ -38,8 +49,13 @@ export default function Work() {
           <Reveal><SectionHeading title="Numbers I care about" note="A few outcomes from professional engineering work." /></Reveal>
           <div className="metrics-grid">
             {metrics.map((m, i) => (
-              <Reveal key={m.label} delay={i * 70} className={`metric metric--${i + 1}`}>
-                <strong>{m.value}</strong><span>{m.label}</span>
+              <Reveal key={m.label} delay={i * 70} className={`metric metric--${i + 1} spot`}>
+                <div className="metric-header">
+                  <span className="metric-idx mono">0{i + 1}</span>
+                </div>
+                <strong>{m.value}</strong>
+                <span>{m.label}</span>
+                {m.detail && <p className="metric-detail mono">{m.detail}</p>}
               </Reveal>
             ))}
           </div>

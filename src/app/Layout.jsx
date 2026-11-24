@@ -1,11 +1,14 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { Link, NavLink, Route, useLocation } from 'react-router-dom';
-import { ArrowUpRight, List, X } from '@phosphor-icons/react';
+import { ArrowUpRight, List, X, MagnifyingGlass } from '@phosphor-icons/react';
 import { profile } from '../data/index.js';
 import { nav, stageFor } from './routes.js';
 import PageTransition from './PageTransition.jsx';
 import ThemeToggle from '../components/ThemeToggle.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';
+import CommandPalette from '../components/CommandPalette.jsx';
+import AtmosphereHUD from '../components/AtmosphereHUD.jsx';
+import CustomCursor from '../components/CustomCursor.jsx';
 import Home from '../pages/Home.jsx';
 import Work from '../pages/Work.jsx';
 import Lab from '../pages/Lab.jsx';
@@ -18,8 +21,8 @@ import NotFound from '../pages/NotFound.jsx';
 // Three.js is ~95% of the old bundle: load it after first paint, in its own chunk.
 const Background3D = lazy(() => import('../three/Background3D.jsx'));
 
-// Spotlight borders: writes --mx/--my straight onto the hovered .spot element
-// (no React state, no re-render). Skipped for touch and reduced motion.
+// Spotlight borders & 3D tilt: writes --mx/--my/--rot-x/--rot-y onto .spot
+// Skipped for touch and reduced motion.
 function useSpotlight() {
   useEffect(() => {
     const ok = matchMedia('(hover: hover) and (prefers-reduced-motion: no-preference)');
@@ -31,24 +34,57 @@ function useSpotlight() {
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(() => {
         const r = el.getBoundingClientRect();
-        el.style.setProperty('--mx', `${e.clientX - r.left}px`);
-        el.style.setProperty('--my', `${e.clientY - r.top}px`);
+        const mx = e.clientX - r.left;
+        const my = e.clientY - r.top;
+        const xPct = (mx / r.width) - 0.5;
+        const yPct = (my / r.height) - 0.5;
+        el.style.setProperty('--mx', `${mx}px`);
+        el.style.setProperty('--my', `${my}px`);
+        el.style.setProperty('--rot-x', `${-yPct * 6}deg`);
+        el.style.setProperty('--rot-y', `${xPct * 6}deg`);
       });
     };
+    const onLeave = e => {
+      const el = e.target.closest?.('.spot');
+      if (el) {
+        el.style.setProperty('--rot-x', '0deg');
+        el.style.setProperty('--rot-y', '0deg');
+      }
+    };
     document.addEventListener('pointermove', onMove, { passive: true });
-    return () => { document.removeEventListener('pointermove', onMove); cancelAnimationFrame(raf); };
+    document.addEventListener('pointerout', onLeave, { passive: true });
+    return () => {
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerout', onLeave);
+      cancelAnimationFrame(raf);
+    };
   }, []);
 }
 
 export default function Layout({ theme, setTheme }) {
   const { pathname } = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [cmdOpen, setCmdOpen] = useState(false);
   const stage = stageFor(pathname);
+
   useEffect(() => setMenuOpen(false), [pathname]);
   useSpotlight();
 
+  // Keyboard shortcut: Cmd+K / Ctrl+K opens Command Palette
+  useEffect(() => {
+    const onKey = e => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setCmdOpen(v => !v);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
   return (
     <>
+      <CustomCursor />
       <ErrorBoundary>
         <Suspense fallback={null}><Background3D stage={stage} /></Suspense>
       </ErrorBoundary>
@@ -62,6 +98,17 @@ export default function Layout({ theme, setTheme }) {
             {nav.map(n => <NavLink key={n.to} to={n.to} end={n.to === '/'}>{n.label}</NavLink>)}
           </div>
           <div className="nav-right">
+            <button
+              type="button"
+              className="nav-cmd-trigger mono"
+              onClick={() => setCmdOpen(true)}
+              title="Command Palette (⌘K)"
+              aria-label="Open Command Palette"
+            >
+              <MagnifyingGlass className="inline-icon" aria-hidden="true" />
+              <span>Search</span>
+              <kbd>⌘K</kbd>
+            </button>
             <ThemeToggle theme={theme} setTheme={setTheme} />
             <a className="nav-cta" href={`mailto:${profile.email}`}>Contact</a>
             <button className="menu-toggle" type="button" aria-controls="primary-links"
@@ -73,6 +120,19 @@ export default function Layout({ theme, setTheme }) {
         </nav>
       </header>
       <div className="route-progress"><span style={{ transform: `scaleX(${(18 + stage * 16) / 100})` }} /></div>
+
+      <AtmosphereHUD
+        onOpenCmd={() => setCmdOpen(true)}
+        onTriggerGust={() => window.dispatchEvent(new CustomEvent('rishabhos-gust'))}
+      />
+
+      <CommandPalette
+        isOpen={cmdOpen}
+        onClose={() => setCmdOpen(false)}
+        theme={theme}
+        setTheme={setTheme}
+        onTriggerGust={() => window.dispatchEvent(new CustomEvent('rishabhos-gust'))}
+      />
 
       <main id="main" tabIndex={-1}>
         <PageTransition>

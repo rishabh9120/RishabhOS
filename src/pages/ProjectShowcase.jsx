@@ -2,6 +2,7 @@ import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, ArrowUpRight } from '@phosphor-icons/react';
 import { projects, STATUS_LABEL } from '../data/index.js';
 import Page from '../components/Page.jsx';
+import ProjectInteractiveWidget from '../components/ProjectInteractiveWidget.jsx';
 
 export default function ProjectShowcase() {
   const { slug } = useParams();
@@ -36,6 +37,11 @@ export default function ProjectShowcase() {
               <a key={l.href} className="button" href={l.href} target="_blank" rel="noreferrer">{l.label} <ArrowUpRight aria-hidden="true" /></a>
             ))}
           </div>
+
+          <div className="showcase-interactive-wrap">
+            <ProjectInteractiveWidget slug={p.slug} />
+          </div>
+
           {p.cover?.src && <img className="showcase-cover" src={p.cover.src} alt={p.cover.alt || ''} />}
           <div className="showcase-grid">
             <aside>{p.tags.map(t => <span key={t} className="tag mono">{t}</span>)}</aside>

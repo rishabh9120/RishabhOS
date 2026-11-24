@@ -1,20 +1,43 @@
-.timeline { border-top: 1px solid var(--line); }
-.timeline-row { display: grid; grid-template-columns: 120px 1fr 1.2fr; gap: 32px; padding: 28px 0; border-bottom: 1px solid var(--line); align-items: start; }
-.timeline-row h3 { font-size: 1.25rem; font-weight: 600; letter-spacing: -.02em; }
+.timeline { border-top: 1px solid var(--line); position: relative; }
+.timeline-row { display: grid; grid-template-columns: 140px 1fr 1.2fr; gap: 32px; padding: 32px 0; border-bottom: 1px solid var(--line); align-items: start; transition: background .2s; }
+.timeline-row:hover { background: color-mix(in srgb, var(--pink) 3%, transparent); }
+.timeline-meta { display: flex; align-items: center; justify-content: space-between; padding-right: 16px; }
+.timeline-dot {
+  width: 8px; height: 8px; border-radius: 50%; border: 2px solid var(--pink);
+  background: var(--bg); box-shadow: 0 0 10px var(--pink);
+}
+.timeline-row h3 { font-size: 1.35rem; font-weight: 600; letter-spacing: -.02em; }
 .timeline-row .role, .timeline-row .summary { color: var(--muted); }
-.timeline-row .role { margin-top: 2px; }
-.timeline-row.is-lead { padding: 44px 0; }
-.timeline-row.is-lead h3 { font-size: clamp(1.5rem, 3vw, 2.25rem); letter-spacing: -.03em; }
-.year { color: var(--accent-ink); font-size: 12px; padding-top: 6px; }
+.timeline-row .role { margin-top: 4px; font-size: .95rem; }
+.timeline-row .summary { line-height: 1.6; }
+.timeline-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+.timeline-tags .tag { font-size: 11px; padding: 3px 8px; border-radius: 4px; }
+.timeline-row.is-lead { padding: 48px 0; }
+.timeline-row.is-lead h3 { font-size: clamp(1.6rem, 3.2vw, 2.35rem); letter-spacing: -.03em; }
+.year { color: var(--accent-ink); font-size: 12px; font-weight: 550; }
 
 /* Four cells, no empty tile: one large on the left, two on top right, one wide below. */
-.metrics-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 16px; }
-.metric { display: flex; flex-direction: column; justify-content: flex-end; gap: 6px; min-height: 168px; padding: 28px; border: 1px solid var(--line); background: var(--card); }
+.metrics-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 18px; }
+.metric {
+  display: flex; flex-direction: column; justify-content: space-between; min-height: 180px; padding: 28px;
+  border: 1px solid var(--line); background: var(--card); border-radius: 8px;
+  transition: transform .3s var(--ease), border-color .3s, box-shadow .3s;
+}
+.metric:hover { border-color: color-mix(in srgb, var(--pink) 50%, transparent); box-shadow: var(--shadow); }
+.metric-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.metric-idx { font-size: 11px; color: var(--accent-ink); opacity: .7; }
 .metric strong { font-size: clamp(2.5rem, 5vw, 4.25rem); line-height: 1; letter-spacing: -.05em; font-weight: 650; }
-.metric span { color: var(--muted); font-size: .9375rem; max-width: 30ch; }
-.metric--1 { grid-row: span 2; min-height: 352px; background: linear-gradient(160deg, color-mix(in srgb, var(--pink) 14%, var(--card)), var(--card) 75%); }
-.metric--1 strong { font-size: clamp(4rem, 9vw, 7.5rem); color: var(--pink); }
-.metric--4 { grid-column: span 2; background: radial-gradient(100% 120% at 100% 100%, color-mix(in srgb, var(--pink) 9%, var(--card)), var(--card) 70%); }
+.metric span { color: var(--fg); font-size: .95rem; font-weight: 500; margin-top: 6px; max-width: 32ch; }
+.metric-detail { color: var(--muted); font-size: 11px; margin-top: 10px; line-height: 1.4; opacity: .85; }
+.metric--1 {
+  grid-row: span 2; min-height: 380px;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--pink) 16%, var(--card)), var(--card) 75%);
+}
+.metric--1 strong { font-size: clamp(4.5rem, 9.5vw, 8rem); color: var(--pink); }
+.metric--4 {
+  grid-column: span 2;
+  background: radial-gradient(100% 120% at 100% 100%, color-mix(in srgb, var(--pink) 11%, var(--card)), var(--card) 70%);
+}
 
 @media (max-width: 768px) {
   .timeline-row { grid-template-columns: 76px 1fr; gap: 6px 20px; padding: 22px 0; }

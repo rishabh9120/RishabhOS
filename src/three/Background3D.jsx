@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
-import { buildTree, createPetalTexture } from './tree.js';
+import { buildTree, createPetalTexture, createGlowTexture } from './tree.js';
 
 /* Fixed full-screen canvas behind the site: the procedural cherry-blossom tree.
    `stage` (0 = home, 1-5 = sections) decides which limb the camera focuses on.
@@ -68,6 +68,26 @@ export default function Background3D({ stage }) {
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(34, innerWidth / innerHeight, .1, 120);
     const world = new THREE.Group(); scene.add(world);
+
+    /* --- Cinematic Lighting --- */
+    const ambientLight = new THREE.AmbientLight(0xfff0f6, 1.35);
+    scene.add(ambientLight);
+
+    const mainLight = new THREE.DirectionalLight(0xfff5fa, 1.8);
+    mainLight.position.set(5, 7, 6);
+    scene.add(mainLight);
+
+    // Rose-gold rim light to catch the curves of the branches
+    const rimLight = new THREE.DirectionalLight(0xff94b8, 2.6);
+    rimLight.position.set(-6, 5, -5);
+    scene.add(rimLight);
+
+    // Dynamic point lights: focus limb glow and interactive pointer lantern
+    const focusLight = new THREE.PointLight(0xff8fb1, 3.0, 16, 1.2);
+    scene.add(focusLight);
+
+    const pointerLight = new THREE.PointLight(0xffbcd2, 1.5, 8, 1.4);
+    scene.add(pointerLight);
 
     /* --- Tree --- */
     const { tree, trunk, trunkCurve, branchCurves, branchMeshes, terminalTwigs, terminalIndices, focusIndices, primaryStarts, primaryAttach, branchDepths, branchParents, materials } = buildTree();
@@ -140,14 +160,75 @@ export default function Background3D({ stage }) {
       }
     }
 
-    /* --- Falling petals (scene space). Integrated per frame so wind can push them. --- */
+    /* --- Falling petals (scene space). Integrated per frame so wind can push them with 3D tumble. --- */
     const falling = [];
     const fallingGroup = new THREE.Group(); scene.add(fallingGroup);
     for (let i = 0; i < Q.falling; i++) {
       const s = new THREE.Sprite(blossomMaterial.clone()); const o = .42 + Math.random() * .25; s.material.opacity = 0; s.material.color.setHex(palette[i % palette.length]);
       const scale = .045 + Math.random() * .06; s.scale.set(scale, scale * 1.45, 1); fallingGroup.add(s);
-      falling.push({ sprite: s, o, x: -2.8 + Math.random() * 6.8, y: -5.2 + Math.random() * 10.5, z: -1.8 + Math.random() * 3.4, wo: 0, phase: Math.random() * 6.28, speed: .10 + Math.random() * .20, drift: .18 + Math.random() * .5, spin: Math.random() * 6.28 });
+      falling.push({
+        sprite: s, o, x: -2.8 + Math.random() * 6.8, y: -5.2 + Math.random() * 10.5, z: -1.8 + Math.random() * 3.4,
+        wo: 0, phase: Math.random() * 6.28, speed: .10 + Math.random() * .20, drift: .18 + Math.random() * .5,
+        spin: Math.random() * 6.28, baseScale: scale, tumbleSpeed: 1.4 + Math.random() * 2.2
+      });
     }
+
+    /* --- Bioluminescent Fireflies / Spores --- */
+    const glowTexture = createGlowTexture();
+    const fireflyCount = coarse ? 40 : 75;
+    const fireflyGroup = new THREE.Group(); scene.add(fireflyGroup);
+    const fireflies = [];
+    const fireflyMat = new THREE.SpriteMaterial({
+      map: glowTexture, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.75, color: 0xffd1e1
+    });
+    const fireflyColors = [0xfff0f6, 0xffbcd4, 0xffe2bc, 0xffa4c0];
+    for (let i = 0; i < fireflyCount; i++) {
+      const sp = new THREE.Sprite(fireflyMat.clone());
+      const s = 0.045 + Math.random() * 0.065;
+      sp.scale.set(s, s, 1);
+      const angle = Math.random() * Math.PI * 2;
+      const radius = 1.0 + Math.random() * 3.8;
+      const x = 2.25 + Math.cos(angle) * radius;
+      const y = -1.5 + Math.random() * 6.2;
+      const z = -2.0 + Math.random() * 4.0;
+      sp.position.set(x, y, z);
+      sp.material.color.setHex(fireflyColors[i % fireflyColors.length]);
+      fireflyGroup.add(sp);
+      fireflies.push({
+        sp, baseX: x, baseY: y, baseZ: z, phase: Math.random() * Math.PI * 2,
+        speed: 0.35 + Math.random() * 0.65, radius, baseScale: s
+      });
+    }
+
+    /* --- Interactive Cursor Stardust Sparks --- */
+    const STARDUST_MAX = 36;
+    const stardustPool = [];
+    const stardustGroup = new THREE.Group(); scene.add(stardustGroup);
+    const stardustMat = new THREE.SpriteMaterial({
+      map: glowTexture, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0, color: 0xffeef7
+    });
+    for (let i = 0; i < STARDUST_MAX; i++) {
+      const sp = new THREE.Sprite(stardustMat.clone());
+      sp.visible = false;
+      stardustGroup.add(sp);
+      stardustPool.push({ sp, vx: 0, vy: 0, life: 1, age: 0, on: false, baseScale: 0.04 });
+    }
+    let stardustIdx = 0;
+    const emitStardust = (pos, count = 2) => {
+      for (let k = 0; k < count; k++) {
+        const p = stardustPool[stardustIdx];
+        stardustIdx = (stardustIdx + 1) % STARDUST_MAX;
+        p.sp.position.set(pos.x + (Math.random() - .5) * .2, pos.y + (Math.random() - .5) * .2, pos.z + (Math.random() - .5) * .15);
+        p.vx = (Math.random() - .5) * .35;
+        p.vy = -.12 - Math.random() * .28;
+        p.life = 0.8 + Math.random() * 0.6;
+        p.age = 0;
+        p.baseScale = 0.035 + Math.random() * 0.04;
+        p.sp.scale.set(p.baseScale, p.baseScale, 1);
+        p.sp.visible = true;
+        p.on = true;
+      }
+    };
 
     /* --- Petal bursts: a small ring buffer, emitted on route change and on click --- */
     const BURST = 64, bursts = [], burstGroup = new THREE.Group(); scene.add(burstGroup);
@@ -182,6 +263,7 @@ export default function Background3D({ stage }) {
         tree.worldToLocal(treePlanePoint.copy(pointerWorld));
         pointer.x = THREE.MathUtils.clamp(treePlanePoint.x / 4.6, -1, 1);
         pointer.y = THREE.MathUtils.clamp(treePlanePoint.y / 5.6, -1, 1);
+        if (!reduce.matches && Math.random() < 0.35) emitStardust(pointerWorld, 1);
       }
     };
     const S = { time: 0, intro: reduce.matches ? 1e6 : 0, grown: false, lastStage: targetStage.current, transFrom: targetStage.current, transStart: 0, stageT0: 0, dir: 0, focusRoot: stageRoot[targetStage.current] ?? -1,
@@ -190,11 +272,22 @@ export default function Background3D({ stage }) {
     const onDown = e => {
       if (reduce.matches || e.target.closest?.('a,button,input,textarea,select,summary,[role="button"]')) return;
       const now = performance.now(); if (now - S.lastClick < 220) return; S.lastClick = now;
-      if (aim(e)) { emit(pointerWorld, 9, .8); S.click = 1; S.gust += .9; }
+      if (aim(e)) { emit(pointerWorld, 12, .9); emitStardust(pointerWorld, 5); S.click = 1; S.gust += 1.1; }
     };
     const measureScroll = () => { S.maxScroll = Math.max(1, document.documentElement.scrollHeight - innerHeight); };
     const onResize = () => { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); measureScroll(); };
-    addEventListener('pointermove', onPointer, { passive: true }); addEventListener('pointerdown', onDown, { passive: true }); addEventListener('resize', onResize);
+    const onGustEvent = () => {
+      const centerTarget = new THREE.Vector3(2.25, 1.5, 0);
+      emit(centerTarget, 22, 1.4);
+      emitStardust(centerTarget, 10);
+      S.click = 1;
+      S.gust += 1.8;
+      S.pulse = 1;
+    };
+    addEventListener('pointermove', onPointer, { passive: true });
+    addEventListener('pointerdown', onDown, { passive: true });
+    addEventListener('resize', onResize);
+    window.addEventListener('rishabhos-gust', onGustEvent);
     // Page height changes on every route; only the cached scroll range needs refreshing (NOT the canvas size).
     const ro = new ResizeObserver(measureScroll); ro.observe(document.body);
 
@@ -305,7 +398,51 @@ export default function Background3D({ stage }) {
         const z2 = d.z + Math.cos(t * .33 + d.phase) * .28;
         const dx = x - mx, dy = d.y - my, dist = Math.sqrt(dx * dx + dy * dy) + .001, force = Math.max(0, 1 - dist / 1.25);
         x += (dx / dist) * force * .38; const fy = (dy / dist) * force * .20;
-        d.sprite.position.set(x, d.y + fy, z2 + force * .08); d.sprite.material.rotation = (d.spin + t * .35) % 6.28; d.sprite.material.opacity = d.o * fallMix;
+        d.sprite.position.set(x, d.y + fy, z2 + force * .08);
+        d.sprite.material.rotation = (d.spin + t * .35) % 6.28;
+        const tumble = Math.cos(t * d.tumbleSpeed + d.phase);
+        const tumbleScale = Math.abs(tumble) * 0.72 + 0.28;
+        d.sprite.scale.set(d.baseScale * tumbleScale, d.baseScale * 1.45, 1);
+        d.sprite.material.opacity = d.o * fallMix;
+      }
+
+      // Dynamic cinematic lighting
+      focusLight.position.lerp(desired === 0 ? vTo.set(2.25, 0.5, 2.0) : vTmp, 1 - Math.exp(-4.2 * dt));
+      focusLight.intensity = (desired === 0 ? 1.6 : 3.4) * introMix + S.pulse * 1.5;
+      pointerLight.position.set(pointerWorld.x, pointerWorld.y, 1.8);
+      pointerLight.intensity = 1.4 + S.click * 1.6;
+
+      // Fireflies & Stardust updates
+      if (!still) {
+        for (let i = 0; i < fireflies.length; i++) {
+          const f = fireflies[i];
+          const pt = t * f.speed + f.phase;
+          const ox = Math.sin(pt * 0.75) * 0.5 + w * 0.2;
+          const oy = Math.cos(pt * 0.95) * 0.35;
+          const oz = Math.sin(pt * 0.6) * 0.35;
+          const dx = (f.baseX + ox) - mx, dy = (f.baseY + oy) - my;
+          const dist = Math.sqrt(dx * dx + dy * dy) + 0.001;
+          const repel = Math.max(0, 1 - dist / 1.7);
+          f.sp.position.set(f.baseX + ox + (dx / dist) * repel * 0.45, f.baseY + oy + (dy / dist) * repel * 0.35, f.baseZ + oz + repel * 0.25);
+          const pulse = 0.5 + 0.5 * Math.sin(pt * 2.3);
+          f.sp.material.opacity = (0.28 + pulse * 0.55) * introMix;
+          const sc = f.baseScale * (0.8 + pulse * 0.4);
+          f.sp.scale.set(sc, sc, 1);
+        }
+
+        for (let i = 0; i < STARDUST_MAX; i++) {
+          const p = stardustPool[i];
+          if (!p.on) continue;
+          p.age += dt;
+          if (p.age >= p.life) { p.on = false; p.sp.visible = false; continue; }
+          p.sp.position.x += p.vx * dt + w * 0.15 * dt;
+          p.sp.position.y += p.vy * dt;
+          const k = p.age / p.life;
+          const alpha = (1 - k) * Math.sin(k * Math.PI);
+          p.sp.material.opacity = alpha * 0.85;
+          const sc = p.baseScale * (1 - k * 0.35);
+          p.sp.scale.set(sc, sc, 1);
+        }
       }
 
       // Bursts: light gravity, drag, wind drift, spin; fade in fast and out slowly
@@ -353,11 +490,18 @@ export default function Background3D({ stage }) {
 
     // Full teardown: loop, listeners, and every GPU resource.
     return () => {
-      cancelAnimationFrame(frame); ro.disconnect(); removeEventListener('pointermove', onPointer); removeEventListener('pointerdown', onDown); removeEventListener('resize', onResize);
-      renderer.dispose(); petalTexture.dispose(); signalGeo.dispose(); signalMat.dispose(); glow.geometry.dispose(); glow.material.dispose();
+      cancelAnimationFrame(frame); ro.disconnect();
+      removeEventListener('pointermove', onPointer);
+      removeEventListener('pointerdown', onDown);
+      removeEventListener('resize', onResize);
+      window.removeEventListener('rishabhos-gust', onGustEvent);
+      renderer.dispose(); petalTexture.dispose(); glowTexture.dispose(); signalGeo.dispose(); signalMat.dispose(); glow.geometry.dispose(); glow.material.dispose();
+      ambientLight.dispose?.(); mainLight.dispose?.(); rimLight.dispose?.(); focusLight.dispose?.(); pointerLight.dispose?.();
       branchMeshes.forEach(m => m.geometry.dispose());
       materials.forEach(m => m.dispose());
-      blossoms.children.forEach(s => s.material.dispose()); flowerTipGroup.children.forEach(s => s.material.dispose()); falling.forEach(d => d.sprite.material.dispose()); bursts.forEach(b => b.sp.material.dispose());
+      blossoms.children.forEach(s => s.material.dispose()); flowerTipGroup.children.forEach(s => s.material.dispose());
+      falling.forEach(d => d.sprite.material.dispose()); bursts.forEach(b => b.sp.material.dispose());
+      fireflies.forEach(f => f.sp.material.dispose()); stardustPool.forEach(p => p.sp.material.dispose());
     };
   }, []);
 

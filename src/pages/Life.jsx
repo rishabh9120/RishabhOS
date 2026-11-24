@@ -1,6 +1,7 @@
 import { life } from '../data/index.js';
 import Page from '../components/Page.jsx';
 import Reveal from '../components/Reveal.jsx';
+import LifeVisual from '../components/LifeVisual.jsx';
 
 export default function Life() {
   return (
@@ -17,7 +18,7 @@ export default function Life() {
               <Reveal as="article" key={c.id} delay={i * 70} className={`life-card life-card--${i + 1} spot`}>
                 {c.image
                   ? <img className="life-media" src={c.image.src} alt={c.image.alt || ''} loading="lazy" />
-                  : <div className="life-media life-media--empty" aria-hidden="true" />}
+                  : <LifeVisual id={c.id} />}
                 <div className="life-body">
                   <h3>{c.title}</h3>
                   <p>{c.description}</p>

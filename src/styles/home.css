@@ -1,8 +1,30 @@
-.hero { min-height: 100dvh; padding: 96px 0 64px; }
+.hero { min-height: 100dvh; padding: 110px 0 64px; }
 .hero-copy-wrap { position: relative; max-width: 660px; }
+
+.hero-pill-badge {
+  display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px; margin-bottom: 20px;
+  border-radius: 999px; border: 1px solid color-mix(in srgb, var(--pink) 30%, var(--line));
+  background: color-mix(in srgb, var(--card) 90%, transparent);
+  font-size: 11px; letter-spacing: .06em; color: var(--fg);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, .12);
+}
+.pulse-beacon {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--pink);
+  box-shadow: 0 0 8px var(--pink); animation: hudPulse 2s infinite;
+}
+
 .hero-title span { display: inline-block; }
-.hero-copy { font-size: 1.125rem; color: var(--muted); max-width: 44ch; }
+.hero-copy { font-size: 1.15rem; color: var(--muted); max-width: 46ch; line-height: 1.6; }
 .hero-actions { display: flex; gap: 12px; margin-top: 32px; }
+
+.hero-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 36px; }
+.hero-tag {
+  font-size: 11px; padding: 4px 10px; border-radius: 999px;
+  background: color-mix(in srgb, var(--fg) 5%, transparent);
+  border: 1px solid var(--line); color: var(--muted);
+  transition: all .2s;
+}
+.hero-tag:hover { border-color: var(--pink); color: var(--fg); }
 
 .statement { padding: clamp(80px, 12vw, 160px) 0; }
 .statement-text { font-size: clamp(2rem, 4.2vw, 3.75rem); line-height: 1.14; letter-spacing: -.035em; font-weight: 600; max-width: 17ch; }
@@ -14,17 +36,49 @@
   }
 }
 
-.paths-grid { display: grid; grid-template-columns: 7fr 5fr; gap: 16px; }
-.path-card { display: flex; flex-direction: column; height: 100%; min-height: 320px; padding: 32px; border: 1px solid var(--line); background: var(--card); transition: transform .3s var(--ease), border-color .3s, box-shadow .3s; }
-.path-card:hover { transform: translateY(-4px); border-color: color-mix(in srgb, var(--pink) 50%, transparent); box-shadow: var(--shadow); }
+.paths-grid { display: grid; grid-template-columns: 7fr 5fr; gap: 20px; }
+.path-card {
+  display: flex; flex-direction: column; height: 100%; min-height: 340px; padding: 32px;
+  border: 1px solid var(--line); background: var(--card); border-radius: 8px;
+  transition: transform .3s var(--ease), border-color .3s, box-shadow .3s;
+}
+.path-card:hover { border-color: color-mix(in srgb, var(--pink) 50%, transparent); box-shadow: var(--shadow); }
 .path-card--work { background: linear-gradient(145deg, color-mix(in srgb, var(--pink) 14%, var(--card)), var(--card) 70%); }
-.path-card--lab { background: radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--pink) 9%, var(--card)), var(--card) 70%); }
-.path-label { font-size: 12px; letter-spacing: .02em; color: var(--accent-ink); }
-.path-card strong { margin: auto 0 10px; padding-top: 48px; font-size: clamp(1.5rem, 2.6vw, 2.125rem); letter-spacing: -.03em; line-height: 1.15; font-weight: 650; }
-.path-card p { color: var(--muted); max-width: 44ch; }
-.path-count { margin-top: 16px; font-size: 12px; color: var(--accent-ink); }
-.path-arrow { position: absolute; top: 28px; right: 28px; font-size: 22px; color: var(--accent-ink); transition: transform .3s var(--ease); }
+.path-card--lab { background: radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--pink) 11%, var(--card)), var(--card) 70%); }
+
+.path-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.path-label { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent-ink); }
+.path-badges { display: flex; gap: 6px; }
+.badge-pill {
+  font-size: 10px; padding: 2px 8px; border-radius: 999px;
+  border: 1px solid var(--line); background: color-mix(in srgb, var(--bg) 60%, transparent);
+  color: var(--muted);
+}
+
+.path-card strong { margin: auto 0 10px; padding-top: 36px; font-size: clamp(1.6rem, 2.7vw, 2.25rem); letter-spacing: -.03em; line-height: 1.15; font-weight: 650; }
+.path-card p { color: var(--muted); max-width: 44ch; line-height: 1.55; }
+.path-footer {
+  display: flex; align-items: center; justify-content: space-between; margin-top: 24px; padding-top: 16px;
+  border-top: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
+  font-size: 12px; color: var(--accent-ink);
+}
+.path-arrow { font-size: 20px; transition: transform .3s var(--ease); }
 .path-card:hover .path-arrow { transform: translate(3px, -3px); }
+
+/* Digital Ecosystem Bento */
+.ecosystem-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 32px; }
+.eco-card {
+  display: flex; flex-direction: column; padding: 28px; border: 1px solid var(--line);
+  background: var(--card); border-radius: 8px;
+}
+.eco-icon {
+  display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;
+  border-radius: 8px; border: 1px solid var(--line); background: color-mix(in srgb, var(--pink) 10%, var(--card));
+  color: var(--pink); font-size: 20px; margin-bottom: 20px;
+}
+.eco-card h3 { font-size: 1.25rem; font-weight: 600; letter-spacing: -.02em; margin-bottom: 8px; }
+.eco-card p { color: var(--muted); font-size: .9375rem; line-height: 1.55; margin-bottom: 20px; flex: 1; }
+.eco-tag { font-size: 11px; color: var(--accent-ink); }
 
 /* Left-aligned so the copy stays on the clear side of the tree. */
 .closing .display { max-width: 14ch; }
@@ -35,5 +89,6 @@
   .hero-copy-wrap::before { content: ''; position: absolute; inset: -20px -16px; z-index: -1; background: radial-gradient(closest-side, var(--overlay), transparent); }
   .hero-actions { flex-direction: column; align-items: stretch; }
   .paths-grid { grid-template-columns: 1fr; }
+  .ecosystem-grid { grid-template-columns: 1fr; }
   .path-card { min-height: 260px; }
 }
